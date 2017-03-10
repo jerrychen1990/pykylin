@@ -50,11 +50,9 @@ def transfer_src(src, table):
 
 
 def transfer_dst(dst):
-    if dst.upper() == 'DAY':
-        return "d"
-    if dst.upper() == 'COUNT':
-        return "total_count"
-    return dst
+    # if dst.upper() == 'COUNT':
+    #     return "total_count"
+    return '"{}"'.format(dst)
 
 
 # test_sql = u'''SELECT day AS day,
