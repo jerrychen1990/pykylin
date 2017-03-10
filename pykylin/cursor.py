@@ -6,8 +6,8 @@ from .errors import Error
 from .log import logger
 from .transfer import transfer_sql
 
-class Cursor(object):
 
+class Cursor(object):
     def __init__(self, connection):
         self.connection = connection
         self._arraysize = 1
@@ -18,20 +18,17 @@ class Cursor(object):
         self.fetched_rows = 0
 
     def callproc(self):
-        raise('Stored procedures not supported in Kylin')
+        raise ('Stored procedures not supported in Kylin')
 
     def close(self):
         logger.debug('Cursor close called')
 
-
-
-
-
-
-
-
     def execute(self, operation, parameters={}, acceptPartial=True, limit=None, offset=0):
         sql = operation % parameters
+        logger.debug("before transfer:{}".format(sql))
+        sql = transfer_sql(sql)
+        logger.debug("QUERY KYLIN: %s" % sql)
+
         data = {
             'sql': sql,
             'offset': offset,
@@ -39,9 +36,7 @@ class Cursor(object):
             'acceptPartial': acceptPartial,
             'project': self.connection.project
         }
-        logger.debug("before transfer:{}",sql)
-        sql = transfer_sql(sql)
-        logger.debug("QUERY KYLIN: %s" % sql)
+
         resp = self.connection.proxy.post('query', json=data)
 
         column_metas = resp['columnMetas']
@@ -53,7 +48,7 @@ class Cursor(object):
              c['displaySize'], 0,
              c['precision'], c['scale'], c['isNullable']]
             for c in column_metas
-        ]
+            ]
 
         self.results = [self._type_mapped(r) for r in resp['results']]
         self.rowcount = len(self.results)
