@@ -4,6 +4,7 @@ from dateutil import parser
 
 from .errors import Error
 from .log import logger
+from .transfer import transfer_sql
 
 class Cursor(object):
 
@@ -22,6 +23,13 @@ class Cursor(object):
     def close(self):
         logger.debug('Cursor close called')
 
+
+
+
+
+
+
+
     def execute(self, operation, parameters={}, acceptPartial=True, limit=None, offset=0):
         sql = operation % parameters
         data = {
@@ -31,6 +39,8 @@ class Cursor(object):
             'acceptPartial': acceptPartial,
             'project': self.connection.project
         }
+        logger.debug("before transfer:{}",sql)
+        sql = transfer_sql(sql)
         logger.debug("QUERY KYLIN: %s" % sql)
         resp = self.connection.proxy.post('query', json=data)
 
