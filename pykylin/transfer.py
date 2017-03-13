@@ -4,8 +4,8 @@ import re
 
 from .log import logger
 
-field_pattern = r"(\s+)(.*) AS ([a-z_]*)"
-group_py_pattern = r"GROUP BY (.*)\s"
+field_pattern = r"(\s+)(.*)\s+AS\s+([a-z_]*)"
+group_py_pattern = r"GROUP BY (.*?)\s+"
 where_pattern = r"(WHERE|AND|OR)\s+(.*?)\s+"
 
 table_pattern = r"FROM (.*?)\s"
@@ -35,7 +35,7 @@ def transfer_date(date_sql):
 
 def get_table(sql):
     tables = re.findall(table_pattern, sql)
-    if len(tables) != 1:
+    if len(tables) < 1:
         logger.error("getting table name error!")
         return ""
     return tables[0]
@@ -74,12 +74,22 @@ def transfer_dst(dst):
     return '"{}"'.format(dst)
 
 
-test_sql = u'''SELECT cat_name AS cat_name,
-       SUM(click) AS sum__click
+test_sql = u'''SELECT campaign_name AS campaign_name,
+       day AS __timestamp,
+              SUM(click) AS sum__click
 FROM DSP_ANALYSE_D
-WHERE day >= '1917-03-06 14:38:49'
-  AND day <= '2017-03-13 14:38:49'
-GROUP BY cat_name
+JOIN
+  (SELECT campaign_name AS campaign_name__,
+          SUM(click) AS mme_inner__
+   FROM DSP_ANALYSE_D
+   WHERE day >= '2016-12-13 15:11:47'
+     AND day <= '2017-03-13 15:11:47'
+   GROUP BY campaign_name
+   ORDER BY mme_inner__ DESC LIMIT 50) AS anon_1 ON campaign_name = campaign_name__
+WHERE day >= '2016-12-13 15:11:47'
+  AND day <= '2017-03-13 15:11:47'
+GROUP BY campaign_name,
+         day
 ORDER BY sum__click DESC LIMIT 50000'''
 
 test_sql = transfer_sql(test_sql)
