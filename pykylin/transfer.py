@@ -65,6 +65,11 @@ def transfer_field(field, table):
 def transfer_src(src, table):
     if "(" not in src:
         src = '''"{}"."{}"'''.format(table, src)
+
+    field_list = src.split("/")
+    if len(field_list) == 2:
+        src = "{}*1.0/{}".format(field_list[0], field_list[1])
+
     return src
 
 
@@ -74,23 +79,13 @@ def transfer_dst(dst):
     return '"{}"'.format(dst)
 
 
-test_sql = u'''SELECT campaign_name AS campaign_name,
-       day AS __timestamp,
-              SUM(click) AS sum__click
+test_sql = u'''SELECT cat_name AS cat_name,
+       sum(click)/sum(impression) AS click_rate
 FROM DSP_ANALYSE_D
-JOIN
-  (SELECT campaign_name AS campaign_name__,
-          SUM(click) AS mme_inner__
-   FROM DSP_ANALYSE_D
-   WHERE day >= '2016-12-13 15:11:47'
-     AND day <= '2017-03-13 15:11:47'
-   GROUP BY campaign_name
-   ORDER BY mme_inner__ DESC LIMIT 50) AS anon_1 ON campaign_name = campaign_name__
-WHERE day >= '2016-12-13 15:11:47'
-  AND day <= '2017-03-13 15:11:47'
-GROUP BY campaign_name,
-         day
-ORDER BY sum__click DESC LIMIT 50000'''
+WHERE day >= '2017-03-06 15:27:53'
+  AND day <= '2017-03-13 15:27:53'
+GROUP BY cat_name
+ORDER BY click_rate DESC LIMIT 50000'''
 
 test_sql = transfer_sql(test_sql)
 
